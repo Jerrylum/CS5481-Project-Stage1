@@ -1,0 +1,33 @@
+version: '3'
+services:
+  selenium:
+    image: selenium/standalone-firefox:4.25.0-20241010
+    ports:
+      - "4444:4444"
+    shm_size: 2g
+    networks:
+      - selenium-network
+    deploy:
+      resources:
+        limits:
+          memory: 20GB
+
+  python:
+    depends_on:
+      - selenium
+    image: python:3.10
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install -r requirements.txt && python main.py"
+    networks:
+      - selenium-network
+    deploy:
+      resources:
+        limits:
+          memory: 20GB
+
+networks:
+  selenium-network:
+    driver: bridge
