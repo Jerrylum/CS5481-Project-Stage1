@@ -16,8 +16,7 @@ driver = webdriver.Remote(
 # use local firefox
 # driver = webdriver.Firefox(options=firefox_options)
 
-#  make binary search tree for id
-id_tree = set()
+analyzed_post_ids = set()
 
 def append_to_file(line: str):
     with open("9gag-memes-dataset-stage1.tsv", "a") as f:
@@ -30,9 +29,9 @@ def analyze_article(article: WebElement):
     if not id or not id.startswith("jsid-post-"):
         return
 
-    # check if id is in id_tree
+    # check if id is in analyzed_post_ids
     id_str: str = id[len("jsid-post-") :]
-    if id_str in id_tree:
+    if id_str in analyzed_post_ids:
         print(f"Already analyzed {id_str}")
         return
 
@@ -66,7 +65,7 @@ def analyze_article(article: WebElement):
     line = f"{id}\t{title}\t{image_url}\t{upvote}\t{comment_count}"
     append_to_file(line)
 
-    id_tree.add(id_str)
+    analyzed_post_ids.add(id_str)
 
 
 def analyze_stream_container(stream_container: WebElement):
