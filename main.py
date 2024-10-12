@@ -13,9 +13,11 @@ driver = webdriver.Remote(
     command_executor="http://host.docker.internal:4444/wd/hub", options=firefox_options
 )
 
-# Open 9gag.com
-driver.get("https://9gag.com/interest/memes")
+# use local firefox
+# driver = webdriver.Firefox(options=firefox_options)
 
+#  make binary search tree for id
+id_tree = set()
 
 def append_to_file(line: str):
     with open("9gag-memes-dataset-stage1.tsv", "a") as f:
@@ -24,8 +26,14 @@ def append_to_file(line: str):
 
 def analyze_article(article: WebElement):
     # get id, check id starts with "jsid-post-"
-    id = article.get_attribute("id")
-    if not id.startswith("jsid-post-"):
+    id: str | None = article.get_attribute("id")
+    if not id or not id.startswith("jsid-post-"):
+        return
+
+    # check if id is in id_tree
+    id_str: str = id[len("jsid-post-") :]
+    if id_str in id_tree:
+        print(f"Already analyzed {id_str}")
         return
 
     try:
@@ -58,24 +66,27 @@ def analyze_article(article: WebElement):
     line = f"{id}\t{title}\t{image_url}\t{upvote}\t{comment_count}"
     append_to_file(line)
 
+    id_tree.add(id_str)
+
 
 def analyze_stream_container(stream_container: WebElement):
     articles = stream_container.find_elements(By.TAG_NAME, "article")
     for article in articles:
         analyze_article(article)
 
-stream_container: WebElement | None = None
-while True:
-    stream_container = driver.find_element(By.CSS_SELECTOR, "div.stream-container")
-    if stream_container:
-        break
 
-i = 0
-try:
+def analyze_page():
+    i = 0
+    stream_container: WebElement | None = None
+    while True:
+        stream_container = driver.find_element(By.CSS_SELECTOR, "div.stream-container")
+        if stream_container:
+            break
+
     while True:
         analyze_stream_container(stream_container)
         next_stream_container = None
-        while True:
+        for _ in range(100):  # around 10 seconds
             try:
                 next_stream_container = stream_container.find_element(
                     By.XPATH, "following-sibling::div[@class='stream-container'][1]"
@@ -85,9 +96,21 @@ try:
                 pass
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(0.1)
+        else:
+            break
         stream_container = next_stream_container
         i += 1
         print(f"Stream {i}")
+
+
+j = 0
+try:
+    while True:
+        driver.get("https://9gag.com/interest/memes")
+        time.sleep(1)
+        analyze_page()
+        j += 1
+        print(f"Reload {j}")
 except KeyboardInterrupt:
     pass
 
