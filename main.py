@@ -9,14 +9,15 @@ import time
 #  using firefox, connect to host.docker.internal:4444
 firefox_options = Options()
 firefox_options.add_argument("--headless")
-driver = webdriver.Remote(
-    command_executor="http://host.docker.internal:4444/wd/hub", options=firefox_options
-)
-
-# use local firefox
-# driver = webdriver.Firefox(options=firefox_options)
 
 analyzed_post_ids = set()
+
+
+def read_analyzed_post_ids():
+    with open("9gag-memes-dataset-stage1.tsv", "r") as f:
+        for line in f:
+            analyzed_post_ids.add(line.split("\t")[0][len("jsid-post-") :])
+
 
 def append_to_file(line: str):
     with open("9gag-memes-dataset-stage1.tsv", "a") as f:
@@ -102,14 +103,25 @@ def analyze_page():
         print(f"Stream {i}")
 
 
+read_analyzed_post_ids()
+
 j = 0
 try:
     while True:
+        driver = webdriver.Remote(
+            command_executor="http://host.docker.internal:4444/wd/hub",
+            options=firefox_options,
+        )
+        # use local firefox
+        # driver = webdriver.Firefox(options=firefox_options)
+
         driver.get("https://9gag.com/interest/memes")
-        time.sleep(1)
         analyze_page()
+        driver.quit()
         j += 1
-        print(f"Reload {j}")
+        print(f"Reload {j}, sleep 30 minutes")
+        # sleep 30 minutes
+        time.sleep(30 * 60)
 except KeyboardInterrupt:
     pass
 
