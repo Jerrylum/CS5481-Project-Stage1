@@ -10,7 +10,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 20GB
+          memory: 4GB
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
       interval: 10s
@@ -33,7 +33,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 20GB
+          memory: 40GB
 
 networks:
   selenium-network:
