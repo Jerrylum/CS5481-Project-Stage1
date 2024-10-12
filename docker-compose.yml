@@ -11,10 +11,17 @@ services:
       resources:
         limits:
           memory: 20GB
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   python:
     depends_on:
-      - selenium
+      selenium:
+        condition: service_healthy  # wait for selenium to be ready
     image: python:3.10
     volumes:
       - ./:/app
