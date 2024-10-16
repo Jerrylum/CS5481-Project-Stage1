@@ -106,24 +106,45 @@ def analyze_page():
 read_analyzed_post_ids()
 
 j = 0
-try:
-    while True:
-        driver = webdriver.Remote(
-            command_executor="http://host.docker.internal:4444/wd/hub",
-            options=firefox_options,
-        )
-        # use local firefox
-        # driver = webdriver.Firefox(options=firefox_options)
+# try:
+#     while True:
+#         driver = webdriver.Remote(
+#             command_executor="http://host.docker.internal:4444/wd/hub",
+#             options=firefox_options,
+#         )
+#         # use local firefox
+#         # driver = webdriver.Firefox(options=firefox_options)
 
+#         driver.get("https://9gag.com/interest/memes")
+#         analyze_page()
+#         driver.quit()
+#         j += 1
+#         print(f"Reload {j}, sleep 30 minutes")
+#         # sleep 30 minutes
+#         time.sleep(30 * 60)
+# except KeyboardInterrupt:
+#     pass
+# finally:
+#     driver.quit()
+while True:
+    driver = webdriver.Remote(
+        command_executor="http://host.docker.internal:4444/wd/hub",
+        options=firefox_options,
+    )
+    # use local firefox
+    # driver = webdriver.Firefox(options=firefox_options)
+
+    try:
         driver.get("https://9gag.com/interest/memes")
         analyze_page()
+    except KeyboardInterrupt:
+        break
+    except Exception as e:
+        print(e)
+    finally:
         driver.quit()
-        j += 1
-        print(f"Reload {j}, sleep 30 minutes")
-        # sleep 30 minutes
-        time.sleep(30 * 60)
-except KeyboardInterrupt:
-    pass
 
-# Close the browser
-driver.quit()
+    j += 1
+    print(f"Reload {j}, sleep 30 minutes")
+    # sleep 30 minutes
+    time.sleep(30 * 60)
